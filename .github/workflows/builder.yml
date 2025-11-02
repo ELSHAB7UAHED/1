@@ -30,7 +30,7 @@ jobs:
       - name: Compile sketch
         run: |
           mkdir -p build
-          arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir build ./AhmedAP
+          arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir build
           echo "✅ Build finished successfully!"
 
       - name: Show build output
