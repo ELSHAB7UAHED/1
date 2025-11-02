@@ -1,4 +1,4 @@
-name: Build ESP32 (Arduino CLI)
+name: Build ESP32 Firmware
 
 on:
   push:
@@ -8,32 +8,36 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@v1
-        with:
-          version: '0.30.2' # يمكن تغييره لنسخة أحدث إذا رغبت
-
-      - name: Update index & install ESP32 core
+      - name: Install Arduino CLI manually
         run: |
+          wget -q https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
+          tar -xzf arduino-cli_latest_Linux_64bit.tar.gz
+          sudo mv arduino-cli /usr/local/bin/
+          arduino-cli version
+
+      - name: Setup ESP32 core
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config set board_manager.additional_urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
           arduino-cli core update-index
           arduino-cli core install esp32:esp32
 
-      - name: Compile sketch (ESP32)
+      - name: Compile sketch
         run: |
-          # تأكد أن مجلد السكيتش اسمه AhmedAP ويحتوي AhmedAP.ino
+          mkdir -p build
           arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir build ./AhmedAP
-        env:
-          ACGITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "✅ Build finished successfully!"
 
-      - name: List build output
-        run: ls -la build || true
+      - name: Show build output
+        run: ls -l build
 
-      - name: Upload artifact (build files)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-build
+          name: esp32-firmware
           path: build
